@@ -35,6 +35,11 @@ paths:
           type: array
           items:
             type: string
+        - name: plot
+          in: query
+          descrition: >
+            represents facet to plot
+          type: string
       responses:
         200:
           description: Success
@@ -61,6 +66,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Facet'
+      datak:
+        type: "array"
+        items:
+          type: number
+      plot_name:
+        type: integer
+        description: >
+          Thing to plot.
       count:
         type: integer
         description: >

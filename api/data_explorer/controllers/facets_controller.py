@@ -2,13 +2,16 @@ from data_explorer.models.facet import Facet
 from data_explorer.models.facet_value import FacetValue
 from data_explorer.models.facets_response import FacetsResponse
 from elasticsearch_dsl import HistogramFacet
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search, Q
+
 from flask import current_app
 
 from ..dataset_faceted_search import DatasetFacetedSearch
 import urllib
 
 
-def facets_get(filter=None):  # noqa: E501
+def facets_get(filter=None, plot="Age"):  # noqa: E501
     """facets_get
 
     Returns facets. # noqa: E501
@@ -18,11 +21,36 @@ def facets_get(filter=None):  # noqa: E501
 
     :rtype: FacetsResponse
     """
+    client = Elasticsearch(current_app.config['ELASTICSEARCH_URL'])
+    request = Search(index='project_baseline').using(client)
+    request = request[0:2000]
+    es_response = request.execute()
+    print('-----------')
+    print(plot)
+    es_field_name = current_app.config['ELASTICSEARCH_FACETS'][plot]._params['field'].split('.keyword')[0]
+    print(es_field_name)
+    all_weights = []
+    for hit in es_response['hits']['hits']:
+        p = hit.to_dict()
+        try:
+            all_weights.append(p['_source'][es_field_name])
+        except:
+            continue
+
+    plot_name = plot
+    # print('KB')
+    # print(plot)
+    # print(all_weights)
+    # print('in get facets now')
+    # #return FacetsResponse(facets=all_weights)
+    # print('the filter is')
+    # print(filter)
     search = DatasetFacetedSearch(deserialize(filter))
     es_response = search.execute()
     es_response_facets = es_response.facets.to_dict()
     facets = []
     for name, description in current_app.config['UI_FACETS'].iteritems():
+        print(name)
         es_facet = current_app.config['ELASTICSEARCH_FACETS'][name]
         values = []
         for value_name, count, _ in es_response_facets[name]:
@@ -37,8 +65,12 @@ def facets_get(filter=None):  # noqa: E501
             else:
                 values.append(FacetValue(name=value_name, count=count))
         facets.append(Facet(name=name, description=description, values=values))
+
     return FacetsResponse(
-        facets=facets, count=es_response._faceted_search.count())
+        facets=facets,
+        count=es_response._faceted_search.count(),
+        datak=all_weights,
+        plot_name=plot_name)
 
 
 def deserialize(filter_arr):
@@ -50,8 +82,10 @@ def deserialize(filter_arr):
     if not filter_arr or filter_arr == [""]:
         return {}
     parsed_filter = {}
+    print(filter_arr)
     # filter_str looks like "Gender=male"
     for facet_filter in filter_arr:
+        print(facet_filter)
         filter_str = urllib.unquote(facet_filter).decode('utf8')
         key_val = filter_str.split('=')
         name = key_val[0]

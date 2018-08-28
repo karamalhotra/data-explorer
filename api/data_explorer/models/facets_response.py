@@ -16,19 +16,36 @@ class FacetsResponse(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, facets=None, count=None):  # noqa: E501
+    def __init__(self, facets=None, datak=None, plot_name=None,
+                 count=None):  # noqa: E501
         """FacetsResponse - a model defined in Swagger
 
         :param facets: The facets of this FacetsResponse.  # noqa: E501
         :type facets: List[Facet]
+        :param datak: The datak of this FacetsResponse.  # noqa: E501
+        :type datak: List[float]
+        :param plot_name: The plot_name of this FacetsResponse.  # noqa: E501
+        :type plot_name: int
         :param count: The count of this FacetsResponse.  # noqa: E501
         :type count: int
         """
-        self.swagger_types = {'facets': List[Facet], 'count': int}
+        self.swagger_types = {
+            'facets': List[Facet],
+            'datak': List[float],
+            'plot_name': int,
+            'count': int
+        }
 
-        self.attribute_map = {'facets': 'facets', 'count': 'count'}
+        self.attribute_map = {
+            'facets': 'facets',
+            'datak': 'datak',
+            'plot_name': 'plot_name',
+            'count': 'count'
+        }
 
         self._facets = facets
+        self._datak = datak
+        self._plot_name = plot_name
         self._count = count
 
     @classmethod
@@ -62,6 +79,50 @@ class FacetsResponse(Model):
         """
 
         self._facets = facets
+
+    @property
+    def datak(self):
+        """Gets the datak of this FacetsResponse.
+
+
+        :return: The datak of this FacetsResponse.
+        :rtype: List[float]
+        """
+        return self._datak
+
+    @datak.setter
+    def datak(self, datak):
+        """Sets the datak of this FacetsResponse.
+
+
+        :param datak: The datak of this FacetsResponse.
+        :type datak: List[float]
+        """
+
+        self._datak = datak
+
+    @property
+    def plot_name(self):
+        """Gets the plot_name of this FacetsResponse.
+
+        Thing to plot.   # noqa: E501
+
+        :return: The plot_name of this FacetsResponse.
+        :rtype: int
+        """
+        return self._plot_name
+
+    @plot_name.setter
+    def plot_name(self, plot_name):
+        """Sets the plot_name of this FacetsResponse.
+
+        Thing to plot.   # noqa: E501
+
+        :param plot_name: The plot_name of this FacetsResponse.
+        :type plot_name: int
+        """
+
+        self._plot_name = plot_name
 
     @property
     def count(self):

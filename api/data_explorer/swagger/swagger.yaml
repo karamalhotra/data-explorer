@@ -38,6 +38,10 @@ paths:
         type: "array"
         items:
           type: "string"
+      - name: "plot"
+        in: "query"
+        required: false
+        type: "string"
       responses:
         200:
           description: "Success"
@@ -67,13 +71,24 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/Facet"
+      datak:
+        type: "array"
+        items:
+          type: "number"
+      plot_name:
+        type: "integer"
+        description: "Thing to plot.\n"
       count:
         type: "integer"
         description: "Number of entities represented by current facet selection. For\
           \ example, this could be 40, representing 40 people.\n"
     description: "Results from a faceted search."
     example:
-      count: 6
+      count: 5
+      plot_name: 1
+      datak:
+      - 6.02745618307040320615897144307382404804229736328125
+      - 6.02745618307040320615897144307382404804229736328125
       facets:
       - values:
         - name: "name"

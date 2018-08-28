@@ -3,6 +3,7 @@ import { ApiClient, DatasetApi, FacetsApi } from "data_explorer_service";
 import ExportFab from "./components/ExportFab";
 import FacetsGrid from "./components/facets/FacetsGrid";
 import Header from "./components/Header";
+import FacetsDropDown from "./components/facets/FacetsDropDown";
 
 import React, { Component } from "react";
 import { MuiThemeProvider } from "material-ui";
@@ -12,8 +13,11 @@ class App extends Component {
     super(props);
     this.state = {
       datasetName: "",
+      thisPlot: null,
       facets: null,
-      totalCount: null
+      totalCount: null,
+      allData: null,
+      handleChange: 2
     };
 
     this.apiClient = new ApiClient();
@@ -24,18 +28,28 @@ class App extends Component {
         console.error(error);
         // TODO(alanhwang): Redirect to an error page
       } else {
+        console.log("setting state here");
+        console.log(this.state.thisPlot);
         this.setState({
           facets: data.facets,
-          totalCount: data.count
+          thisPlot: data.plot_name,
+          totalCount: data.count,
+          allData: data.datak,
+          hanldeChange: data.handleChange
         });
       }
     }.bind(this);
     // Map from facet name to a list of facet values.
     this.filterMap = new Map();
     this.updateFacets = this.updateFacets.bind(this);
+    this.updatePlot = this.updatePlot.bind(this);
   }
 
   render() {
+    console.log("calling render");
+    console.log(this.state.thisplot);
+
+    //    debugger;
     if (this.state.facets == null || this.state.datasetName === "") {
       // Server has not yet responded or returned an error
       return <div />;
@@ -47,9 +61,19 @@ class App extends Component {
               datasetName={this.state.datasetName}
               totalCount={this.state.totalCount}
             />
+            <FacetsDropDown
+              updateFacets={this.updateFacets}
+              updatePlot={this.updatePlot}
+              facets={this.state.facets}
+              plot={this.state.thisplot}
+              allData={this.state.allData}
+            />
             <FacetsGrid
               updateFacets={this.updateFacets}
+              updatePlot={this.updatePlot}
               facets={this.state.facets}
+              allData={this.state.allData}
+              plot={this.state.thisplot}
             />
           </div>
         </MuiThemeProvider>
@@ -58,7 +82,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.facetsApi.facetsGet({}, this.facetsCallback);
+    this.facetsApi.facetsGet({ plot: "Age" }, this.facetsCallback);
 
     // Call /api/dataset
     let datasetApi = new DatasetApi(this.apiClient);
@@ -79,7 +103,21 @@ class App extends Component {
    * @param facetValue string containing the name of this facet value
    * @param isSelected bool indicating whether this facetValue should be added to or removed from the query
    * */
-  updateFacets(facetName, facetValue, isSelected) {
+
+  updatePlot(newplotNumber) {
+    this.state.thisplot = newplotNumber;
+  }
+
+  updateFacets(plotValue, facetName, facetValue, isSelected) {
+    console.log("in updateFacets");
+    console.log(plotValue);
+
+    this.setState({
+      thisplot: this.state.facets[plotValue].name
+    });
+    //    console.log('-------------')
+    //    console.log(this.state.plot)
+
     let currentFacetValues = this.filterMap.get(facetName);
     if (isSelected) {
       // Add facetValue to the list of filters for facetName
@@ -98,9 +136,15 @@ class App extends Component {
 
     let filterArray = this.filterMapToArray(this.filterMap);
     if (filterArray.length > 0) {
-      this.facetsApi.facetsGet({ filter: filterArray }, this.facetsCallback);
+      this.facetsApi.facetsGet(
+        { plot: this.state.facets[plotValue].name },
+        this.facetsCallback
+      );
     } else {
-      this.facetsApi.facetsGet({}, this.facetsCallback);
+      this.facetsApi.facetsGet(
+        { plot: this.state.facets[plotValue].name },
+        this.facetsCallback
+      );
     }
   }
 
