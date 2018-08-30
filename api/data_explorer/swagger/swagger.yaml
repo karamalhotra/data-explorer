@@ -42,6 +42,10 @@ paths:
         in: "query"
         required: false
         type: "string"
+      - name: "plot2"
+        in: "query"
+        required: false
+        type: "string"
       responses:
         200:
           description: "Success"
@@ -72,10 +76,12 @@ definitions:
         items:
           $ref: "#/definitions/Facet"
       datak:
-        type: "array"
-        items:
-          type: "number"
+        type: "object"
+        example: ""
       plot_name:
+        type: "integer"
+        description: "Thing to plot.\n"
+      plot_name2:
         type: "integer"
         description: "Thing to plot.\n"
       count:
@@ -84,11 +90,10 @@ definitions:
           \ example, this could be 40, representing 40 people.\n"
     description: "Results from a faceted search."
     example:
+      plot_name2: 1
       count: 5
-      plot_name: 1
-      datak:
-      - 6.02745618307040320615897144307382404804229736328125
-      - 6.02745618307040320615897144307382404804229736328125
+      plot_name: 6
+      datak: ""
       facets:
       - values:
         - name: "name"

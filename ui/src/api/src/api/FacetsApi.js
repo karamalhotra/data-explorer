@@ -44,6 +44,7 @@ export default class FacetsApi {
    * @param {Object} opts Optional parameters
    * @param {Array.<String>} opts.filter filter represents selected facet values. Elasticsearch query will be run only over selected facet values. filter is an array of strings, where each string has the format \&quot;facetName&#x3D;facetValue\&quot;. Example url /facets?filter&#x3D;Gender&#x3D;female,Region&#x3D;northwest,Region&#x3D;southwest
    * @param {String} opts.plot
+   * @param {String} opts.plot2
    * @param {module:api/FacetsApi~facetsGetCallback} callback The callback function, accepting three arguments: error, data, response
    * data is of type: {@link module:model/FacetsResponse}
    */
@@ -54,7 +55,8 @@ export default class FacetsApi {
     let pathParams = {};
     let queryParams = {
       filter: this.apiClient.buildCollectionParam(opts["filter"], "csv"),
-      plot: opts["plot"]
+      plot: opts["plot"],
+      plot2: opts["plot2"]
     };
     let headerParams = {};
     let formParams = {};

@@ -8,39 +8,56 @@ import "./FacetsDropDown.css";
 
 const menuStyles = {
   width: 300,
-  fontSize: "30px"
+  fontSize: "30px",
+  paddingLeft: 220
 };
 
 class FacetsDropDown extends Component {
   constructor(props) {
     super(props);
     this.state = { value: 0 };
+    this.center = this.props.center;
     this.facets = this.props.facets;
-    this.updateFacets = this.props.updateFacets;
-    this.plot = this.props.thisplot;
+    this.updatePlot = this.props.updatePlot;
+    this.updatePlot2 = this.props.updatePlot2;
     this.facetsList = this.props.facets.map((facet, idx) => (
       <MenuItem value={idx} primaryText={facet.name} />
     ));
+    if (this.center == "2") {
+      this.updatePlot2(0);
+    } else {
+      this.updatePlot(0);
+    }
+
     this.onDropDownChange = this.onDropDownChange.bind(this);
+    this.onDropDownChange2 = this.onDropDownChange2.bind(this);
   }
 
-  //gets called from the DropDownMenu
-  //  handleChange = (event, index, value) => {this.setState({value}); this.props.updateFacets(value,
-  //      this.facets[value].name,
-  //      'test',
-  //      1
-  //    )};
   handleChange = (event, index, value) => {
     this.onDropDownChange(value);
   };
-
-  //this.props.updatePlot(value)
-  //this.props.updatePlot(value)
+  handleChange2 = (event, index, value) => {
+    this.onDropDownChange2(value);
+  };
 
   render() {
-    return (
-      <div>
-        <center>
+    if (this.center == "2") {
+      return (
+        <div>
+          <MuiThemeProvider>
+            <DropDownMenu
+              value={this.state.value}
+              onChange={this.handleChange2}
+              style={menuStyles}
+            >
+              {this.facetsList}
+            </DropDownMenu>
+          </MuiThemeProvider>
+        </div>
+      );
+    } else {
+      return (
+        <div>
           <MuiThemeProvider>
             <DropDownMenu
               value={this.state.value}
@@ -50,39 +67,20 @@ class FacetsDropDown extends Component {
               {this.facetsList}
             </DropDownMenu>
           </MuiThemeProvider>
-        </center>
-      </div>
-    );
+        </div>
+      );
+    }
   }
 
   onDropDownChange(value) {
     this.setState({ value });
-    this.props.updateFacets(value, this.facets[value].name, "test", 1);
+    this.props.updatePlot(value);
+  }
+
+  onDropDownChange2(value) {
+    this.setState({ value });
+    this.props.updatePlot2(value);
   }
 }
 
-//render(<FacetsDropDown />, document.getElementById('root'));
 export default FacetsDropDown;
-
-//import "./FacetsDropDown.css";
-//
-//import React, { Component } from "react";
-//import DropDownMenu from "material-ui/DropDownMenu";
-//import MenuItem from 'material-ui/MenuItem';
-//
-//
-//function FacetsDropDown(props) {
-//  const facets = props.facets;
-//  const updateFacets = props.updateFacets;
-//  const handleChange = props.handleChange;
-//  const facetsList = facets.map((facet, idx) => (
-//      <MenuItem value={idx} primaryText={facet.name} />
-//  ));
-//  return (<DropDownMenu onChange={handleChange}>
-//    {facetsList}
-//  </DropDownMenu>
-//
-//  );
-//}
-//
-//export default FacetsDropDown;

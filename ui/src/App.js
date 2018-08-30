@@ -14,6 +14,7 @@ class App extends Component {
     this.state = {
       datasetName: "",
       thisPlot: null,
+      thisPlot2: null,
       facets: null,
       totalCount: null,
       allData: null,
@@ -33,6 +34,7 @@ class App extends Component {
         this.setState({
           facets: data.facets,
           thisPlot: data.plot_name,
+          thisPlot2: data.plot_name2,
           totalCount: data.count,
           allData: data.datak,
           hanldeChange: data.handleChange
@@ -43,12 +45,10 @@ class App extends Component {
     this.filterMap = new Map();
     this.updateFacets = this.updateFacets.bind(this);
     this.updatePlot = this.updatePlot.bind(this);
+    this.updatePlot2 = this.updatePlot2.bind(this);
   }
 
   render() {
-    console.log("calling render");
-    console.log(this.state.thisplot);
-
     //    debugger;
     if (this.state.facets == null || this.state.datasetName === "") {
       // Server has not yet responded or returned an error
@@ -61,19 +61,28 @@ class App extends Component {
               datasetName={this.state.datasetName}
               totalCount={this.state.totalCount}
             />
+            <p id="p">Plot</p>
+
             <FacetsDropDown
-              updateFacets={this.updateFacets}
               updatePlot={this.updatePlot}
+              updatePlot2={this.updatePlot2}
               facets={this.state.facets}
-              plot={this.state.thisplot}
               allData={this.state.allData}
+              center="1"
+            />
+            <p id="p">Correlate to: </p>
+
+            <FacetsDropDown
+              updatePlot={this.updatePlot}
+              updatePlot2={this.updatePlot2}
+              facets={this.state.facets}
+              allData={this.state.allData}
+              center="2"
             />
             <FacetsGrid
-              updateFacets={this.updateFacets}
-              updatePlot={this.updatePlot}
-              facets={this.state.facets}
               allData={this.state.allData}
               plot={this.state.thisplot}
+              plot2={this.state.thisplot2}
             />
           </div>
         </MuiThemeProvider>
@@ -104,8 +113,25 @@ class App extends Component {
    * @param isSelected bool indicating whether this facetValue should be added to or removed from the query
    * */
 
-  updatePlot(newplotNumber) {
-    this.state.thisplot = newplotNumber;
+  updatePlot(plotValue) {
+    this.setState({
+      thisplot: this.state.facets[plotValue].name
+    });
+    this.facetsApi.facetsGet(
+      { plot: this.state.facets[plotValue].name, plot2: this.state.thisplot2 },
+      this.facetsCallback
+    );
+  }
+  updatePlot2(plotValue) {
+    console.log("IN Update pLot 2");
+    console.log(plotValue);
+    this.setState({
+      thisplot2: this.state.facets[plotValue].name
+    });
+    this.facetsApi.facetsGet(
+      { plot: this.state.thisplot, plot2: this.state.facets[plotValue].name },
+      this.facetsCallback
+    );
   }
 
   updateFacets(plotValue, facetName, facetValue, isSelected) {

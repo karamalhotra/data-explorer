@@ -1,27 +1,3 @@
-//import "./FacetsGrid.css";
-//import FacetCard from "./FacetCard";
-//
-//import React, { Component } from "react";
-//import { GridList, GridTile } from "material-ui/GridList";
-//
-//function FacetsGrid(props) {
-//  const facets = props.facets;
-//  const updateFacets = props.updateFacets;
-//  const facetsList = facets.map(facet => (
-//    <GridTile key={facet.name}>
-//      <FacetCard facet={facet} updateFacets={updateFacets} />
-//    </GridTile>
-//  ));
-//  return (
-//    <GridList className="gridList" cols={3} cellHeight="auto" padding={1}>
-//      {facetsList}
-//    </GridList>
-//  );
-//}
-//
-//export default FacetsGrid;
-
-///////////////////V2/////////////////////////////////////
 import "./FacetsGrid.css";
 import FacetCard from "./FacetCard";
 
@@ -31,48 +7,53 @@ import Plot from "react-plotly.js";
 import FacetsDropDown from "./FacetsDropDown";
 
 function FacetsGrid(props) {
-  const facets = props.facets;
-  const updateFacets = props.updateFacets;
   const Data = props.allData;
   const plot = props.plot;
-  var facet = facets[0];
-  //var test = facet['values'][0]
-  //var updatePlot = props.updatePlot
-  //document.write(plot)
-  //document.write(typeof Data)
-  //  document.write("KB")
-  //document.write(updatePlot)
-  //var myJSON = JSON.stringify(Data);
-  //document.write(Object.keys(Data))
+  const plot2 = props.plot2;
 
-  //  document.write(Object.values(Data))
-  //  for (var i in facet) {
-  //        document.write(i+":" + facet[i]);
-  //  }
+  console.log("KB HERE");
+  //  console.log(Data)
+  console.log(props.plot);
+  console.log(props.plot2);
+  console.log(Data["highest_correlation"]);
 
-  //  const facetsList = facets.map(facet => (
-  //    <GridTile key={facet.name}>
-  //      <FacetCard facet={facet} updateFacets={updateFacets} />
-  //    </GridTile>
-  //  ));
+  //console.log(Data[props.plot])
+  var layout = {
+    width: 1900,
+    height: 900,
+    annotations: [
+      {
+        xref: "paper",
+        yref: "paper",
+        x: 0.9,
+        xanchor: "right",
+        y: 1,
+        yanchor: "bottom",
+        text: Data["highest_correlation"],
+        showarrow: false
+      }
+    ],
+    xaxis: { title: props.plot, domain: [0, 0.45] },
+    yaxis: { title: "# of participants" },
 
-  //document.write(plot)
-  //console.log('My object : ' + facets[0])
-
-  var layout = { width: 320, height: 240, title: props.plot };
+    yaxis2: { title: props.plot2, anchor: "x2" },
+    xaxis2: { title: props.plot, domain: [0.65, 1] }
+  };
   var trace = {
-    x: Data,
+    x: Data[props.plot],
     type: "histogram"
   };
-  var data = [trace];
+  var trace2 = {
+    x: Data[props.plot],
+    y: Data[props.plot2],
+    xaxis: "x2",
+    yaxis: "y2",
+    mode: "markers",
+    type: "scatter"
+  };
 
-  return (
-    <Plot
-      data={data}
-      layout={layout}
-      onInitialized={figure => this.setState(figure)}
-      onUpdate={figure => this.setState(figure)}
-    />
-  );
+  var data = [trace, trace2];
+
+  return <Plot data={data} layout={layout} />;
 }
 export default FacetsGrid;

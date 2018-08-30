@@ -37,7 +37,12 @@ paths:
             type: string
         - name: plot
           in: query
-          descrition: >
+          description: >
+            represents facet to plot
+          type: string
+        - name: plot2
+          in: query
+          description: >
             represents facet to plot
           type: string
       responses:
@@ -67,10 +72,16 @@ definitions:
         items:
           $ref: '#/definitions/Facet'
       datak:
-        type: "array"
-        items:
-          type: number
+        type: "object"
+        additionalProperties:
+          type: true
+        example:
+          en: 3
       plot_name:
+        type: integer
+        description: >
+          Thing to plot.
+      plot_name2:
         type: integer
         description: >
           Thing to plot.

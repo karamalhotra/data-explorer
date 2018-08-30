@@ -44,10 +44,16 @@ export default class FacetsResponse {
         obj["facets"] = ApiClient.convertToType(data["facets"], [Facet]);
       }
       if (data.hasOwnProperty("datak")) {
-        obj["datak"] = ApiClient.convertToType(data["datak"], ["Number"]);
+        obj["datak"] = ApiClient.convertToType(data["datak"], Object);
       }
       if (data.hasOwnProperty("plot_name")) {
         obj["plot_name"] = ApiClient.convertToType(data["plot_name"], "Number");
+      }
+      if (data.hasOwnProperty("plot_name2")) {
+        obj["plot_name2"] = ApiClient.convertToType(
+          data["plot_name2"],
+          "Number"
+        );
       }
       if (data.hasOwnProperty("count")) {
         obj["count"] = ApiClient.convertToType(data["count"], "Number");
@@ -61,7 +67,7 @@ export default class FacetsResponse {
    */
   facets = undefined;
   /**
-   * @member {Array.<Number>} datak
+   * @member {Object} datak
    */
   datak = undefined;
   /**
@@ -69,6 +75,11 @@ export default class FacetsResponse {
    * @member {Number} plot_name
    */
   plot_name = undefined;
+  /**
+   * Thing to plot.
+   * @member {Number} plot_name2
+   */
+  plot_name2 = undefined;
   /**
    * Number of entities represented by current facet selection. For example, this could be 40, representing 40 people.
    * @member {Number} count
