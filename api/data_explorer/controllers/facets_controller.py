@@ -27,7 +27,7 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
     print('called facets_controller')
     client = Elasticsearch(current_app.config['ELASTICSEARCH_URL'])
     request = Search(index='project_baseline').using(client)
-    request = request[0:30]
+    request = request[0:200]
     es_response = request.execute()
     datak = {}
 
@@ -109,8 +109,21 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
                                                              answer[0])
         print(response)
 
+    elif is_numeric(all_data[plot].dtype) and is_numeric(all_data[plot2].dtype)==False:
+        data = {}
+        for rc in np.unique(all_data[plot2]):
+            if rc is None:
+                continue
+            data[rc] = all_data[all_data[plot2] == rc][plot].dropna().values
+
+        answer = stats.f_oneway(*[data[k] for k in data.keys()])
+        response = 'anova one way %s to %s, F value: %0.2f' % (plot, plot2,
+                                                             answer[0])
     else:
         response = 'nope: %s is type %s, %s is type %s'%(plot, is_numeric(all_data[plot].dtype), plot2, all_data[plot2].dtype)
+
+
+
     print(response)
     # test = pd.DataFrame(datak)
     #print(test.head())

@@ -141,8 +141,6 @@ class App extends Component {
     this.setState({
       thisplot: this.state.facets[plotValue].name
     });
-    //    console.log('-------------')
-    //    console.log(this.state.plot)
 
     let currentFacetValues = this.filterMap.get(facetName);
     if (isSelected) {

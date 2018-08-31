@@ -11,13 +11,11 @@ function FacetsGrid(props) {
   const plot = props.plot;
   const plot2 = props.plot2;
 
-  console.log("KB HERE");
   //  console.log(Data)
   console.log(props.plot);
   console.log(props.plot2);
   console.log(Data["highest_correlation"]);
 
-  //console.log(Data[props.plot])
   var layout = {
     width: 1900,
     height: 900,
@@ -30,14 +28,15 @@ function FacetsGrid(props) {
         y: 1,
         yanchor: "bottom",
         text: Data["highest_correlation"],
+        font: { size: 18 },
         showarrow: false
       }
     ],
-    xaxis: { title: props.plot, domain: [0, 0.45] },
-    yaxis: { title: "# of participants" },
+    xaxis: { title: props.plot, domain: [0, 0.45], titlefont: { size: 24 } },
+    yaxis: { title: "# of participants", titlefont: { size: 18 } },
 
-    yaxis2: { title: props.plot2, anchor: "x2" },
-    xaxis2: { title: props.plot, domain: [0.65, 1] }
+    yaxis2: { title: props.plot2, titlefont: { size: 18 }, anchor: "x2" },
+    xaxis2: { title: props.plot, titlefont: { size: 18 }, domain: [0.65, 1] }
   };
   var trace = {
     x: Data[props.plot],
