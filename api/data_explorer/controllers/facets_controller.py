@@ -13,22 +13,8 @@ from ..dataset_faceted_search import DatasetFacetedSearch
 import urllib
 import pandas as pd
 
-
-def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
-    """facets_get
-
-    Returns facets. # noqa: E501
-
-    :param filter: filter represents selected facet values. Elasticsearch query will be run only over selected facet values. filter is an array of strings, where each string has the format \&quot;facetName&#x3D;facetValue\&quot;. Example url /facets?filter&#x3D;Gender&#x3D;female,Region&#x3D;northwest,Region&#x3D;southwest
-    :type filter: List[str]
-
-    :rtype: FacetsResponse
-    """
-    print('called facets_controller')
-    client = Elasticsearch(current_app.config['ELASTICSEARCH_URL'])
-    request = Search(index='project_baseline').using(client)
-    request = request[0:200]
-    es_response = request.execute()
+def process_response_for_correlations(es_response, plot, plot2):
+    print('in process response')
     datak = {}
 
     participants = []
@@ -54,34 +40,8 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
             except:
                 continue
     all_data = all_data.convert_objects(convert_numeric=True)
-    #
-    # all_data_with_indicators = pd.get_dummies(all_data).dropna().copy()
-    #
-    # select = SelectKBest(score_func=chi2, k='all')
-    # current_es_plot_name = current_app.config['ELASTICSEARCH_FACETS'][plot]._params[
-    #                 'field'].split('.keyword')[0]
-    # associated_var_columns = [i for i in all_data_with_indicators.columns if plot in i]
-    # use_as_correlated = associated_var_columns[0]
-    #
-    # y = all_data_with_indicators[use_as_correlated].values
-    # y = y.astype('float64')
-    #
-    # cols = all_data_with_indicators[[col for col in all_data_with_indicators.columns if col != use_as_correlated]].columns
-    #
-    # input_data = all_data_with_indicators[[col for col in all_data_with_indicators.columns if col != use_as_correlated]].values
-    # input_data = input_data.astype('float64')
-    #
-    # print(' y is ')
-    # print(y.dtype)
-    # print('input data')
-    # print(input_data.dtype)
-
-    # fit = select.fit(input_data, y)
-    # highest_correlated= cols[np.argmax(fit.scores_)]
-    # print('highest correlated')
-    # print(highest_correlated)
-
-    # for each facet, what is the best score?
+    print('the lenght of all data')
+    print(len(all_data))
 
     for name, description in current_app.config['UI_FACETS'].iteritems():
         es_field_name = current_app.config['ELASTICSEARCH_FACETS'][
@@ -101,14 +61,9 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
         else:
             return False
 
-    print('type is here')
-    print(all_data[plot].dtype)
     if is_numeric(all_data[plot].dtype) and is_numeric(all_data[plot2].dtype):
         answer = stats.pearsonr(all_data[plot].values, all_data[plot2].values)
-        response = 'peasonr coeff for %s and %s is %0.2f' % (plot, plot2,
-                                                             answer[0])
-        print(response)
-
+        response = 'peasonr coeff = %0.2f' % (answer[0])
     elif is_numeric(all_data[plot].dtype) and is_numeric(all_data[plot2].dtype)==False:
         data = {}
         for rc in np.unique(all_data[plot2]):
@@ -117,37 +72,36 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
             data[rc] = all_data[all_data[plot2] == rc][plot].dropna().values
 
         answer = stats.f_oneway(*[data[k] for k in data.keys()])
-        response = 'anova one way %s to %s, F value: %0.2f' % (plot, plot2,
-                                                             answer[0])
+        response = 'anova F value= %0.2f' % (answer[0])
     else:
         response = 'nope: %s is type %s, %s is type %s'%(plot, is_numeric(all_data[plot].dtype), plot2, all_data[plot2].dtype)
 
-
-
-    print(response)
-    # test = pd.DataFrame(datak)
-    #print(test.head())
     datak['highest_correlation'] = response
-    datak['highest_correlation_name'] = ''
-    # data_to_correlate = pd.Series(datak[plot])
-    # if data_to_correlate.dtypes == 'O':
-    #     data_to_correlate = data_to_correlate.astype('category').cat.codes
-    #
-    # for name, description in current_app.config['UI_FACETS'].iteritems():
-    #     if name != plot:
-    #         data_var2 = pd.Series(datak[name])
-    #         if data_var2.dtypes == 'O':
-    #             data_var2 = data_var2.astype('category').cat.codes
-    #         correlation = data_to_correlate.corr(data_var2)
-    #         if correlation > datak['highest_correlation']:
-    #             datak['highest_correlation'] = correlation
-    #             datak['highest_correlation_name'] = name
+    return datak
 
+def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
+    """facets_get
+
+    Returns facets. # noqa: E501
+
+    :param filter: filter represents selected facet values. Elasticsearch query will be run only over selected facet values. filter is an array of strings, where each string has the format \&quot;facetName&#x3D;facetValue\&quot;. Example url /facets?filter&#x3D;Gender&#x3D;female,Region&#x3D;northwest,Region&#x3D;southwest
+    :type filter: List[str]
+
+    :rtype: FacetsResponse
+    """
+    print('called facets_controller')
+    # client = Elasticsearch(current_app.config['ELASTICSEARCH_URL'])
+    # request = Search(index='project_baseline').using(client)
+    # request = request[0:200]
+    # es_response = request.execute()
     plot_name = plot
     plot_name2 = plot2
 
     search = DatasetFacetedSearch(deserialize(filter))
     es_response = search.execute()
+    print('right here')
+    print(len(es_response['hits']['hits']))
+    datak = process_response_for_correlations(es_response, plot, plot2)
     es_response_facets = es_response.facets.to_dict()
     facets = []
     for name, description in current_app.config['UI_FACETS'].iteritems():
@@ -212,3 +166,33 @@ def _number_to_range(bucket_number, interval_size):
 def _range_to_number(bucket_string):
     """Converts "X-Y" -> "X"."""
     return int(bucket_string.split('-')[0])
+
+
+    #
+    # all_data_with_indicators = pd.get_dummies(all_data).dropna().copy()
+    #
+    # select = SelectKBest(score_func=chi2, k='all')
+    # current_es_plot_name = current_app.config['ELASTICSEARCH_FACETS'][plot]._params[
+    #                 'field'].split('.keyword')[0]
+    # associated_var_columns = [i for i in all_data_with_indicators.columns if plot in i]
+    # use_as_correlated = associated_var_columns[0]
+    #
+    # y = all_data_with_indicators[use_as_correlated].values
+    # y = y.astype('float64')
+    #
+    # cols = all_data_with_indicators[[col for col in all_data_with_indicators.columns if col != use_as_correlated]].columns
+    #
+    # input_data = all_data_with_indicators[[col for col in all_data_with_indicators.columns if col != use_as_correlated]].values
+    # input_data = input_data.astype('float64')
+    #
+    # print(' y is ')
+    # print(y.dtype)
+    # print('input data')
+    # print(input_data.dtype)
+
+    # fit = select.fit(input_data, y)
+    # highest_correlated= cols[np.argmax(fit.scores_)]
+    # print('highest correlated')
+    # print(highest_correlated)
+
+    # for each facet, what is the best score?

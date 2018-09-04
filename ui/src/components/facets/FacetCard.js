@@ -107,6 +107,8 @@ class FacetCard extends Component {
     }
     this.setState({ selectedValues: newValues });
     this.props.updateFacets(
+      -1,
+      -1,
       this.props.facet.name,
       facetValue.name,
       isInputChecked

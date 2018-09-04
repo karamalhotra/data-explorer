@@ -9,7 +9,7 @@ import "./FacetsDropDown.css";
 const menuStyles = {
   width: 300,
   fontSize: "30px",
-  paddingLeft: 220
+  background: "Gainsboro"
 };
 
 class FacetsDropDown extends Component {

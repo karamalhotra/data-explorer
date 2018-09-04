@@ -2,6 +2,7 @@ import "./App.css";
 import { ApiClient, DatasetApi, FacetsApi } from "data_explorer_service";
 import ExportFab from "./components/ExportFab";
 import FacetsGrid from "./components/facets/FacetsGrid";
+import FacetsPlot from "./components/facets/FacetsPlot";
 import Header from "./components/Header";
 import FacetsDropDown from "./components/facets/FacetsDropDown";
 
@@ -61,6 +62,14 @@ class App extends Component {
               datasetName={this.state.datasetName}
               totalCount={this.state.totalCount}
             />
+            <FacetsGrid
+              updateFacets={this.updateFacets}
+              facets={this.state.facets}
+            />
+            <Header
+              datasetName={"Create Plots"}
+              totalCount={this.state.totalCount}
+            />
             <p id="p">Plot</p>
 
             <FacetsDropDown
@@ -79,7 +88,7 @@ class App extends Component {
               allData={this.state.allData}
               center="2"
             />
-            <FacetsGrid
+            <FacetsPlot
               allData={this.state.allData}
               plot={this.state.thisplot}
               plot2={this.state.thisplot2}
@@ -134,14 +143,21 @@ class App extends Component {
     );
   }
 
-  updateFacets(plotValue, facetName, facetValue, isSelected) {
-    console.log("in updateFacets");
-    console.log(plotValue);
-
-    this.setState({
-      thisplot: this.state.facets[plotValue].name
-    });
-
+  updateFacets(p1, p2, facetName, facetValue, isSelected) {
+    var plot1_ = null;
+    var plot2_ = null;
+    if (p1 != -1) {
+      plot1_ = this.state.facets[p1].name;
+      this.setState({ thisplot1: this.state.facets[p1].name });
+    } else {
+      plot1_ = this.state.thisplot;
+    }
+    if (p2 != -1) {
+      plot2_ = this.state.facets[p2].name;
+      this.setState({ thisplot2: this.state.facets[p2].name });
+    } else {
+      plot2_ = this.state.thisplot2;
+    }
     let currentFacetValues = this.filterMap.get(facetName);
     if (isSelected) {
       // Add facetValue to the list of filters for facetName
@@ -161,12 +177,12 @@ class App extends Component {
     let filterArray = this.filterMapToArray(this.filterMap);
     if (filterArray.length > 0) {
       this.facetsApi.facetsGet(
-        { plot: this.state.facets[plotValue].name },
+        { filter: filterArray, plot: plot1_, plot2: plot2_ },
         this.facetsCallback
       );
     } else {
       this.facetsApi.facetsGet(
-        { plot: this.state.facets[plotValue].name },
+        { plot: plot1_, plot2: plot2_ },
         this.facetsCallback
       );
     }
