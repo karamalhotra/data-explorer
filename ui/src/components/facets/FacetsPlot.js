@@ -14,9 +14,8 @@ function FacetsPlot(props) {
   //  console.log(Data)
   console.log(props.plot);
   console.log(props.plot2);
+  console.log(Data[props.plot + "_" + props.plot2]);
   var fruits = Data[props.plot];
-
-  console.log(Data["highest_correlation"]);
   console.log(fruits);
 
   var layout = {
@@ -52,7 +51,7 @@ function FacetsPlot(props) {
         xanchor: "right",
         y: 0.95,
         yanchor: "bottom",
-        text: Data["highest_correlation"],
+        text: Data[props.plot + "_" + props.plot2],
         font: { size: 32 },
         showarrow: false
       }
