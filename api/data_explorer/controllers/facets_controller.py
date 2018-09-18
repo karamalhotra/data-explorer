@@ -2,20 +2,21 @@ from data_explorer.models.facet import Facet
 from data_explorer.models.facet_value import FacetValue
 from data_explorer.models.facets_response import FacetsResponse
 from elasticsearch_dsl import HistogramFacet
-from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from flask import current_app
 from sklearn.feature_selection import SelectKBest
+from sklearn.decomposition import PCA as sklearnPCA
 from sklearn.feature_selection import chi2
+import sklearn
 import numpy as np
 from scipy import stats
 from ..dataset_faceted_search import DatasetFacetedSearch
 import urllib
 import pandas as pd
 import time
-
+import copy
 def process_response_for_correlations(es_response, plot, plot2):
-    get_all_data = False
+    get_all_data = True
     datak = {}
     if True:#not 'all_data' in locals():
         print('redoing full processing')
@@ -44,13 +45,57 @@ def process_response_for_correlations(es_response, plot, plot2):
                 except:
                     continue
         all_data = all_data.convert_objects(convert_numeric=True)
-        print(all_data[plot])
-        print(all_data[plot].dtype)
         def is_numeric(type_):
             if (type_ == 'int64') or (type_ == 'float64'):
                 return True
             else:
                 return False
+
+
+        compute_best_features = True
+        if compute_best_features:
+            nonnull_data = all_data.dropna().copy()
+            ###############PCA part#########################
+            df =  copy.deepcopy(nonnull_data)
+            for col_name in df.columns:
+                if (df[col_name].dtype == 'object'):
+                    df[col_name] = df[col_name].astype('category')
+                    df[col_name] = df[col_name].cat.codes
+
+            number_components = 3
+
+            normalized_subfields = df
+            for col in normalized_subfields.columns:
+                normalized_subfields.loc[:, col] = (normalized_subfields.loc[:, col] - normalized_subfields.loc[:, col].min()) / (normalized_subfields.loc[:,col].max() - normalized_subfields.loc[:, col].min())
+
+            pca = sklearnPCA(n_components=number_components)
+            PCA = pca.fit(normalized_subfields)
+
+            datak['comp_features'] = list(normalized_subfields.columns)
+            for component_n in range(number_components):
+                print(component_n)
+                datak['com'+str(component_n)] = list(PCA.components_[component_n, :])
+
+            target = nonnull_data[plot]
+            if (is_numeric(nonnull_data[plot].dtype)==True):
+                function = sklearn.feature_selection.f_regression
+                print('using regression')
+                title =  'Feature selection for ' + plot + '(regress)'
+            else:
+                function = sklearn.feature_selection.chi2
+                print('using chi2')
+                title =  'Feature selection for ' + plot + '(chi2)'
+            all_data_dummies = pd.get_dummies(nonnull_data)
+            selector = SelectKBest(function, k=5)
+            predictors = [i for i in all_data_dummies.columns if plot not in i]
+            if True:
+                selector.fit(all_data_dummies[predictors].values, target.values)
+                scores = selector.scores_
+                datak['select_k_best_scores'] = list(scores)
+                datak['select_k_best_predictors'] = predictors
+                datak['select_k_best_index'] = range(len(predictors))
+                datak['select_k_best_title'] = title
+
 
         correlation_matrix = pd.DataFrame(index=facets, columns=facets)
         for facet_1 in facets:
@@ -63,7 +108,7 @@ def process_response_for_correlations(es_response, plot, plot2):
                 elif (is_numeric(all_data[facet_1].dtype) and is_numeric(all_data[facet_2].dtype)==False):
                     data = {}
                     for rc in np.unique(all_data[facet_2]):
-                        if rc is None or pd.isnull(rc):
+                        if rc is None or pd.isnull(rc) or rc==np.nan:
                             continue
                         data[rc] = all_data[all_data[facet_2] == rc][facet_1].dropna().values
 
@@ -72,17 +117,10 @@ def process_response_for_correlations(es_response, plot, plot2):
                 elif (is_numeric(all_data[facet_1].dtype)==False and is_numeric(all_data[facet_2].dtype)):
                     data = {}
                     for rc in np.unique(all_data[facet_1]):
-                        if rc is None or pd.isnull(rc):
+                        if rc is None or pd.isnull(rc) or rc==np.nan:
                             continue
-                        print(rc)
-                        print(type(rc))
                         data[rc] = all_data[all_data[facet_1] == rc][facet_2].dropna().values
 
-                    print('---------------')
-                    print(data['yes'])
-                    print((data['no']))
-                    print(data.keys())
-                    print(len(data.keys()))
                     answer = stats.f_oneway(*[data[k] for k in data.keys()])
                     print(answer)
                     response = 'anova F value= %0.2f' % (answer[0])
@@ -96,7 +134,7 @@ def process_response_for_correlations(es_response, plot, plot2):
 
     if get_all_data:
         for name in facets:
-            datak[name] = list(all_data[name].values)
+            datak[name] = list(all_data[name].values)[0:20]
 
         for facet_1 in facets:
             for facet_2 in facets:
