@@ -84,6 +84,7 @@ def process_response_for_correlations(es_response, plot, plot2):
                     print(data.keys())
                     print(len(data.keys()))
                     answer = stats.f_oneway(*[data[k] for k in data.keys()])
+                    print(answer)
                     response = 'anova F value= %0.2f' % (answer[0])
                 else:
                     # Cross tab shows the distributionsof each category with respect to each other
@@ -101,8 +102,8 @@ def process_response_for_correlations(es_response, plot, plot2):
             for facet_2 in facets:
                 datak[facet_1+'_'+facet_2] = correlation_matrix.loc[facet_1, facet_2]
     else:
-        datak[plot] = list(all_data[plot].values)
-        datak[plot2] = list(all_data[plot2].values)
+        datak[plot] = list(all_data[plot].dropna().values)
+        datak[plot2] = list(all_data[plot2].dropna().values)
         datak[plot + '_' + plot2] = correlation_matrix.loc[plot, plot2]
 
         datak['highest_correlation'] = correlation_matrix.loc[plot, plot2]
