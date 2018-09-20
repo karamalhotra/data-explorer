@@ -16,7 +16,8 @@ function FacetsPlot(props) {
   console.log(props.plot2);
   console.log(Data[props.plot + "_" + props.plot2]);
   var fruits = Data[props.plot2];
-  console.log( Data['select_k_best_title']);
+  console.log(Data["select_k_best_title"]);
+  console.log(Data[props.plot]);
 
   var layout = {
     width: 1900,
@@ -39,7 +40,7 @@ function FacetsPlot(props) {
         yref: "paper",
         x: 0.92,
         xanchor: "right",
-        y: .40,
+        y: 0.4,
         yanchor: "bottom",
         text: "PCA analysis",
         font: { size: 32 },
@@ -52,7 +53,7 @@ function FacetsPlot(props) {
         xanchor: "right",
         y: 0.4,
         yanchor: "bottom",
-        text: Data['select_k_best_title'],
+        text: Data["select_k_best_title"],
         font: { size: 32 },
         showarrow: false
       },
@@ -80,18 +81,30 @@ function FacetsPlot(props) {
       }
     ],
     xaxis: { title: props.plot, domain: [0, 0.45], titlefont: { size: 28 } },
-    yaxis: { title: "# of participants", titlefont: { size: 28 }, domain:[0.65, 0.95]},
+    yaxis: {
+      title: "# of participants",
+      titlefont: { size: 28 },
+      domain: [0.65, 0.95]
+    },
 
-    yaxis2: { title: props.plot2, titlefont: { size: 28 }, anchor: "x2", domain:[0.65, 0.95]},
+    yaxis2: {
+      title: props.plot2,
+      titlefont: { size: 28 },
+      anchor: "x2",
+      domain: [0.65, 0.95]
+    },
     xaxis2: { title: props.plot, titlefont: { size: 28 }, domain: [0.65, 1] },
 
-    yaxis3: { title: 'score', titlefont: { size: 28 }, domain:[0.1,0.35]},
-    xaxis3: {domain: [0, .45], anchor:'y3', tickfont: { size: 18}, 'tickangle':75},
+    yaxis3: { title: "score", titlefont: { size: 28 }, domain: [0.1, 0.35] },
+    xaxis3: {
+      domain: [0, 0.45],
+      anchor: "y3",
+      tickfont: { size: 18 },
+      tickangle: 75
+    },
 
-    yaxis4: {domain:[0.1,0.35]},
-    xaxis4: {domain: [0.65, 1], anchor:'y4'},
-
-
+    yaxis4: { domain: [0.1, 0.35] },
+    xaxis4: { domain: [0.65, 1], anchor: "y4" }
   };
   var trace = {
     x: Data[props.plot],
@@ -107,40 +120,39 @@ function FacetsPlot(props) {
   };
 
   var trace3 = {
-    x: Data['select_k_best_predictors'],
-    y: Data['select_k_best_scores'],
+    x: Data["select_k_best_predictors"],
+    y: Data["select_k_best_scores"],
     xaxis: "x3",
     yaxis: "y3",
     mode: "markers",
-    type: "scatter",
+    type: "scatter"
   };
 
   var trace4 = {
-    x: Data['comp_features'],
-    y: Data['com0'],
+    x: Data["comp_features"],
+    y: Data["com0"],
     xaxis: "x4",
     yaxis: "y4",
-    name: 'Component1',
-    type: 'bar'
+    name: "Component1",
+    type: "bar"
   };
 
   var trace5 = {
-    x: Data['comp_features'],
-    y: Data['com1'],
+    x: Data["comp_features"],
+    y: Data["com1"],
     xaxis: "x4",
     yaxis: "y4",
-    name: 'Component2',
-    type: 'bar'
+    name: "Component2",
+    type: "bar"
   };
-   var trace6 = {
-    x: Data['comp_features'],
-    y: Data['com2'],
+  var trace6 = {
+    x: Data["comp_features"],
+    y: Data["com2"],
     xaxis: "x4",
     yaxis: "y4",
-    name: 'Component3',
-    type: 'bar'
+    name: "Component3",
+    type: "bar"
   };
-
 
   var data = [trace, trace2, trace3, trace4, trace5, trace6];
 

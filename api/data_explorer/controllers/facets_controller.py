@@ -66,35 +66,40 @@ def process_response_for_correlations(es_response, plot, plot2):
 
             normalized_subfields = df
             for col in normalized_subfields.columns:
-                normalized_subfields.loc[:, col] = (normalized_subfields.loc[:, col] - normalized_subfields.loc[:, col].min()) / (normalized_subfields.loc[:,col].max() - normalized_subfields.loc[:, col].min())
-
+                # In the case that there is only one value, do not normalize
+                if normalized_subfields.loc[:,col].min()!=normalized_subfields.loc[:,col].max():
+                    normalized_subfields.loc[:, col] = (normalized_subfields.loc[:, col] - normalized_subfields.loc[:, col].min()) / (normalized_subfields.loc[:,col].max() - normalized_subfields.loc[:, col].min())
             pca = sklearnPCA(n_components=number_components)
             PCA = pca.fit(normalized_subfields)
-
             datak['comp_features'] = list(normalized_subfields.columns)
             for component_n in range(number_components):
-                print(component_n)
                 datak['com'+str(component_n)] = list(PCA.components_[component_n, :])
 
             target = nonnull_data[plot]
             if (is_numeric(nonnull_data[plot].dtype)==True):
                 function = sklearn.feature_selection.f_regression
                 print('using regression')
-                title =  'Feature selection for ' + plot + '(regress)'
+                title =  'Feature selection for ' + plot + ' (regress)'
             else:
                 function = sklearn.feature_selection.chi2
                 print('using chi2')
-                title =  'Feature selection for ' + plot + '(chi2)'
+                title =  'Feature selection for ' + plot + ' (chi2)'
             all_data_dummies = pd.get_dummies(nonnull_data)
             selector = SelectKBest(function, k=5)
             predictors = [i for i in all_data_dummies.columns if plot not in i]
             if True:
-                selector.fit(all_data_dummies[predictors].values, target.values)
-                scores = selector.scores_
-                datak['select_k_best_scores'] = list(scores)
-                datak['select_k_best_predictors'] = predictors
-                datak['select_k_best_index'] = range(len(predictors))
-                datak['select_k_best_title'] = title
+                if len(np.unique(target.values))==1:
+                    datak['select_k_best_scores'] = []
+                    datak['select_k_best_predictors'] = []
+                    datak['select_k_best_index'] = []
+                    datak['select_k_best_title'] = 'Feature selection not possible'
+                else:
+                    selector.fit(all_data_dummies[predictors].values, target.values)
+                    scores = selector.scores_
+                    datak['select_k_best_scores'] = list(scores)
+                    datak['select_k_best_predictors'] = predictors
+                    datak['select_k_best_index'] = range(len(predictors))
+                    datak['select_k_best_title'] = title
 
 
         correlation_matrix = pd.DataFrame(index=facets, columns=facets)
@@ -102,39 +107,40 @@ def process_response_for_correlations(es_response, plot, plot2):
             for facet_2 in facets:
                 if not get_all_data and (facet_1!=plot or facet_2!=plot2):
                     continue
-                if (is_numeric(all_data[facet_1].dtype) and is_numeric(all_data[facet_2].dtype)):
-                    answer = stats.pearsonr(all_data[facet_1].values, all_data[facet_2].values)
-                    response = 'peasonr coeff = %0.2f' % (answer[0])
-                elif (is_numeric(all_data[facet_1].dtype) and is_numeric(all_data[facet_2].dtype)==False):
-                    data = {}
-                    for rc in np.unique(all_data[facet_2]):
-                        if rc is None or pd.isnull(rc) or rc==np.nan:
-                            continue
-                        data[rc] = all_data[all_data[facet_2] == rc][facet_1].dropna().values
+                try:
+                    if (is_numeric(all_data[facet_1].dtype) and is_numeric(all_data[facet_2].dtype)):
+                        answer = stats.pearsonr(all_data[facet_1].values, all_data[facet_2].values)
+                        response = 'peasonr coeff = %0.2f' % (answer[0])
+                    elif (is_numeric(all_data[facet_1].dtype) and is_numeric(all_data[facet_2].dtype)==False):
+                        data = {}
+                        for rc in np.unique(all_data[facet_2]):
+                            if rc is None or pd.isnull(rc) or rc==np.nan:
+                                continue
+                            data[rc] = all_data[all_data[facet_2] == rc][facet_1].dropna().values
 
-                    answer = stats.f_oneway(*[data[k] for k in data.keys()])
-                    response = 'anova F value= %0.2f' % (answer[0])
-                elif (is_numeric(all_data[facet_1].dtype)==False and is_numeric(all_data[facet_2].dtype)):
-                    data = {}
-                    for rc in np.unique(all_data[facet_1]):
-                        if rc is None or pd.isnull(rc) or rc==np.nan:
-                            continue
-                        data[rc] = all_data[all_data[facet_1] == rc][facet_2].dropna().values
+                        answer = stats.f_oneway(*[data[k] for k in data.keys()])
+                        response = 'anova F value= %0.2f' % (answer[0])
+                    elif (is_numeric(all_data[facet_1].dtype)==False and is_numeric(all_data[facet_2].dtype)):
+                        data = {}
+                        for rc in np.unique(all_data[facet_1]):
+                            if rc is None or pd.isnull(rc) or rc==np.nan:
+                                continue
+                            data[rc] = all_data[all_data[facet_1] == rc][facet_2].dropna().values
 
-                    answer = stats.f_oneway(*[data[k] for k in data.keys()])
-                    print(answer)
-                    response = 'anova F value= %0.2f' % (answer[0])
-                else:
-                    # Cross tab shows the distributionsof each category with respect to each other
-                    ct1 = pd.crosstab(all_data[facet_1], all_data[facet_2])
-                    cs1 = stats.chi2_contingency(ct1)
-                    response = 'Chi2 test stat= %0.2f' % (cs1[0])
-                correlation_matrix.loc[facet_1, facet_2] = response
-        print(correlation_matrix)
+                        answer = stats.f_oneway(*[data[k] for k in data.keys()])
+                        response = 'anova F value= %0.2f' % (answer[0])
+                    else:
+                        # Cross tab shows the distributionsof each category with respect to each other
+                        ct1 = pd.crosstab(all_data[facet_1], all_data[facet_2])
+                        cs1 = stats.chi2_contingency(ct1)
+                        response = 'Chi2 test stat= %0.2f' % (cs1[0])
+                    correlation_matrix.loc[facet_1, facet_2] = response
+                except:
+                    correlation_matrix.loc[facet_1, facet_2] = 'error'
 
     if get_all_data:
         for name in facets:
-            datak[name] = list(all_data[name].values)[0:20]
+            datak[name] = list(all_data[name].values)
 
         for facet_1 in facets:
             for facet_2 in facets:
@@ -145,6 +151,7 @@ def process_response_for_correlations(es_response, plot, plot2):
         datak[plot + '_' + plot2] = correlation_matrix.loc[plot, plot2]
 
         datak['highest_correlation'] = correlation_matrix.loc[plot, plot2]
+    print(datak)
     return datak
 
 def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
@@ -164,16 +171,17 @@ def facets_get(filter=None, plot="Age", plot2="Age"):  # noqa: E501
     # es_response = request.execute()
     plot_name = plot
     plot_name2 = plot2
-    print('about to start faceted search')
-    print(time.time())
+    # print('about to start faceted search')
+    # print(time.time())
+    # print(filter)
     search = DatasetFacetedSearch(deserialize(filter))
     es_response = search.execute()
-    print('finished faceted search')
-    print(time.time())
-    print(len(es_response['hits']['hits']))
+    # print('finished faceted search')
+    # print(time.time())
+    # print(len(es_response['hits']['hits']))
     datak = process_response_for_correlations(es_response, plot, plot2)
-    print('finished correlations')
-    print(time.time())
+    # print('finished correlations')
+    # print(time.time())
     es_response_facets = es_response.facets.to_dict()
     facets = []
     for name, description in current_app.config['UI_FACETS'].iteritems():
@@ -208,10 +216,10 @@ def deserialize(filter_arr):
     if not filter_arr or filter_arr == [""]:
         return {}
     parsed_filter = {}
-    print(filter_arr)
+    # print(filter_arr)
     # filter_str looks like "Gender=male"
     for facet_filter in filter_arr:
-        print(facet_filter)
+        # print(facet_filter)
         filter_str = urllib.unquote(facet_filter).decode('utf8')
         key_val = filter_str.split('=')
         name = key_val[0]

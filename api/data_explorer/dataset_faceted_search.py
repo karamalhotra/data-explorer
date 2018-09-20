@@ -25,4 +25,4 @@ class DatasetFacetedSearch(FacetedSearch):
         s = super(DatasetFacetedSearch, self).search()
         # Don't execute query; we only care about aggregations. See
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/returning-only-agg-results.html
-        return s.params(size=500)
+        return s.params(size=1500)
